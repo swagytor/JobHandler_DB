@@ -1,11 +1,19 @@
-import time
 import psycopg2
 
 
 class DBCreator:
+    """
+    Класс для создания БД и таблиц,
+    а так же для заполнения информации в таблицы
+    """
 
     @classmethod
-    def create_database(cls, db_name, params):
+    def create_database(cls, db_name: str, params: dict) -> None:
+        """
+        Создаёт базу данных
+        :param db_name: Название базы данных
+        :param params: Информация о конфиге базы данных
+        """
         conn = None
 
         try:
@@ -25,30 +33,39 @@ class DBCreator:
                 conn.close()
 
     @classmethod
-    def create_tables(cls, cur, script):
+    def create_tables(cls, cur, script: str) -> None:
+        """
+        Создаёт таблицы employers и vacancies
+        :param cur: Курсор для работы с БД
+        :param script: Файл, в котором находится скрипт для создания таблиц
+        """
         with open(script, 'r', encoding='utf-8') as file:
             cur.execute(file.read())
         print('ТАБЛИЦЫ УСПЕШНО СОЗДАНЫ')
 
     @classmethod
-    def insert_data(cls, employers_data, cur):
+    def insert_data(cls, employers_data: dict, cur) -> None:
+        """
+        Заносит данные о работодателях и вакансиях в таблицы
+        :param employers_data: информация о работодателях и вакансиях
+        :param cur: Курсор для работы с БД
+        """
         for employer in employers_data['employers']:
             employer = list(employer.values())
-            column_amount = ', '.join(["%s"] * len(employer))
+            column_amount: str = ', '.join(["%s"] * len(employer))
 
             cur.execute(
                 f"""
                 INSERT INTO employers
                 VALUES ({column_amount})
                 """,
-                employer
-            )
+                employer)
 
         for vacancy in employers_data['items']:
-            vacancy_values = list(vacancy.values())
-            column_amount = ', '.join(["%s"] * len(vacancy_values))
-            field_names = ', '.join(list(vacancy.keys()))
-            updated_fields = ', '.join([f"{field_name} = EXCLUDED.{field_name}" for field_name in vacancy])
+            vacancy_values: list = list(vacancy.values())
+            column_amount: str = ', '.join(["%s"] * len(vacancy_values))
+            field_names: str = ', '.join(list(vacancy.keys()))
+            updated_fields: str = ', '.join([f"{field_name} = EXCLUDED.{field_name}" for field_name in vacancy])
             cur.execute(
                 f"""
                 INSERT INTO vacancies ({field_names})
